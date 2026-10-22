@@ -1,0 +1,57 @@
+import { defineFeaturePlugin } from "openclaw/plugin-sdk/feature-plugin";
+import { contract } from "./contract.js";
+const DENY_TEST_SENTINEL = "__JARVIS_DENY_TEST__";
+const ALLOWED_WORKFLOW = "n8n__call_my_sub-workflow_1_";
+export default defineFeaturePlugin({
+    contract,
+    name: "JARVIS Policy Engine",
+    description: "Analyze drafts with JARVIS Policy Engine tools and native UI.",
+    setup(api) {
+        api.on("before_tool_call", (event) => {
+            if (event.toolName.toLowerCase() === "jarvis_policy_analyze" &&
+                event.params.text === DENY_TEST_SENTINEL) {
+                return {
+                    block: true,
+                    blockReason: "JARVIS isolated before_tool_call DENY test sentinel matched.",
+                };
+            }
+        });
+        api.registerTrustedToolPolicy({
+            id: "jarvis-policy-guard",
+            description: "JARVIS pre-tool policy with an isolated DENY test case.",
+            evaluate(event) {
+                const toolName = event.toolName.toLowerCase();
+                if (toolName === "jarvis_policy_analyze" &&
+                    event.params.text === DENY_TEST_SENTINEL) {
+                    return {
+                        allow: false,
+                        reason: "JARVIS isolated DENY test sentinel matched.",
+                    };
+                }
+                if (toolName === ALLOWED_WORKFLOW) {
+                    return {
+                        allow: true,
+                        reason: "Approved JARVIS workflow allow rule.",
+                    };
+                }
+                return {
+                    requireApproval: {
+                        title: "JARVIS Policy Engine approval",
+                        description: `Approve tool call: ${event.toolName}`,
+                        severity: "warning",
+                        allowedDecisions: ["allow-once", "deny"],
+                    },
+                };
+            },
+        });
+        return {
+            analyze: ({ text }) => ({
+                words: text.trim() ? text.trim().split(/\s+/u).length : 0,
+                lines: text ? text.split("\n").length : 0,
+                headings: text
+                    .split("\n")
+                    .filter((line) => /^#{1,6} /u.test(line)),
+            }),
+        };
+    },
+});

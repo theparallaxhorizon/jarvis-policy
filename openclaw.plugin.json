@@ -1,0 +1,28 @@
+{
+  "id": "jarvis-policy",
+  "name": "JARVIS Policy Engine",
+  "description": "Analyze drafts with JARVIS Policy Engine tools and native UI.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  },
+  "activation": {
+    "onStartup": true
+  },
+  "controlUi": {
+    "entry": "dist/control-ui/bcef621c5688f0ddb5a679d7c9e6683ba298d816685819391a9736856d9049c9/index.js",
+    "styles": [
+      "dist/control-ui/bcef621c5688f0ddb5a679d7c9e6683ba298d816685819391a9736856d9049c9/index.css"
+    ]
+  },
+  "contracts": {
+    "tools": [
+      "jarvis_policy_analyze"
+    ],
+    "trustedToolPolicies": [
+      "jarvis-policy-guard"
+    ]
+  }
+}
